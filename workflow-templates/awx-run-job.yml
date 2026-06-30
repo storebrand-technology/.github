@@ -1,0 +1,33 @@
+name: AWX - Run Job
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_template_name:
+        description: 'AWX job template name'
+        required: true
+        type: choice
+        options:
+          - ${{values.repo_name}}-win-ping
+      limit:
+        description: 'Inventory limit pattern (e.g. "windows:&env_prod")'
+        required: false
+        type: string
+        default: ''
+      extra_vars:
+        description: 'Extra variables (JSON)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    uses: storebrand-technology/plt-core-platform/.github/workflows/awx-trigger-job.yml@main
+    with:
+      job_template_name: ${{ inputs.job_template_name }}
+      limit: ${{ inputs.limit }}
+      extra_vars: ${{ inputs.extra_vars }}
+    secrets: inherit
