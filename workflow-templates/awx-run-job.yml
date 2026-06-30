@@ -6,9 +6,7 @@ on:
       job_template_name:
         description: 'AWX job template name'
         required: true
-        type: choice
-        options:
-          - ${{values.repo_name}}-win-ping
+        type: string
       limit:
         description: 'Inventory limit pattern (e.g. "windows:&env_prod")'
         required: false
