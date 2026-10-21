@@ -1,4 +1,5 @@
 name: AWX - Run Job
+run-name: "AWX - ${{ github.event_name == 'workflow_run' && 'sync-vm-credentials (post-deploy)' || inputs.job_template_name }}"
 
 on:
   workflow_dispatch:
@@ -18,14 +19,33 @@ on:
         type: string
         default: ''
 
+  # Push credentials to newly deployed VMs as soon as the IaC deploy on main
+  # succeeds. workflow_run rather than push on iac/** so it runs after the
+  # VMs exist instead of racing the deploy.
+  workflow_run:
+    workflows: ['🚀 - IaC - CICD']
+    types: [completed]
+    branches: [main]
+
 permissions:
   contents: read
 
 jobs:
   run:
+    if: github.event_name == 'workflow_dispatch'
     uses: storebrand-technology/plt-core-platform/.github/workflows/awx-trigger-job.yml@main
     with:
       job_template_name: ${{ inputs.job_template_name }}
       limit: ${{ inputs.limit }}
       extra_vars: ${{ inputs.extra_vars }}
+    secrets: inherit
+
+  # No only_out_of_sync: a rebuilt VM keeps an extension stamped with the
+  # current secret version and would be skipped.
+  credential-sync:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    uses: storebrand-technology/plt-core-platform/.github/workflows/awx-trigger-job.yml@main
+    with:
+      job_template_name: sync-vm-credentials
+      extra_vars: '{"sync_filter": "${{ github.event.repository.name }}"}'
     secrets: inherit
