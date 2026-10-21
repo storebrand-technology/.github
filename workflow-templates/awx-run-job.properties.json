@@ -1,6 +1,6 @@
 {
   "name": "AWX - Run Job",
-  "description": "Trigger an AWX job template from GitHub Actions. Uses the shared reusable workflow from plt-core-platform.",
+  "description": "Trigger an AWX job template from GitHub Actions, and sync VM credentials automatically after each successful IaC deploy. Uses the shared reusable workflow from plt-core-platform.",
   "iconName": "octicon rocket",
   "categories": ["Automation"],
   "filePatterns": [".github/workflows/awx-run-job.yml"]
