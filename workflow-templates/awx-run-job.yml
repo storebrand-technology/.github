@@ -1,7 +1,9 @@
 name: AWX - Run Job
 run-name: "AWX - ${{ github.event_name == 'workflow_run' && 'sync-vm-credentials (post-deploy)' || inputs.job_template_name }}"
 
-on:
+# workflow_run is intentional and safe here: it only reads the finished deploy's
+# conclusion, never checks out or runs code from it, and is limited to main.
+on: # zizmor: ignore[dangerous-triggers]
   workflow_dispatch:
     inputs:
       job_template_name:
@@ -27,6 +29,11 @@ on:
     types: [completed]
     branches: [main]
 
+# Never cancel a job launch; just don't run two at once for the same trigger.
+concurrency:
+  group: awx-run-job-${{ github.run_id }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -40,4 +47,5 @@ jobs:
       job_template_name: ${{ inputs.job_template_name }}
       limit: ${{ inputs.limit }}
       extra_vars: ${{ inputs.extra_vars }}
-    secrets: inherit
+    secrets:
+      AWX_OAUTH_TOKEN: ${{ secrets.AWX_OAUTH_TOKEN }}
